@@ -5,13 +5,6 @@
     "version": "0.0.2",
     "minimum_chrome_version": "38",
     "default_locale": "en",
-    "oauth2": {
-        "client_id": "785152409085-0ft9qjqggjlh6dmj20coe5lnqhhudr20.apps.googleusercontent.com",
-        "scopes": [
-            "https://www.googleapis.com/auth/drive"
-        ]
-    },
-    "key": "eiffojpekipggdmbebacijppfdckgglg",
     "icons": {
         "16": "images/icon_16.png",
         "128": "images/icon_128.png"
@@ -23,17 +16,8 @@
             ]
         }
     },
-    "sandbox": {
-        "pages": ["sandbox.html"]
-    },
     "permissions": [
         "storage",
-        "syncFileSystem",
-        "identity",
-        "webview",
-        "background",
-        "https://ssl.gstatic.com/",
-        "https://*.googleapis.com/",
-        "https://*.google.com/"
+        "syncFileSystem"
     ]
 }
