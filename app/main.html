@@ -1,0 +1,66 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>TxtNotes</title>
+
+	<!-- build:css styles/vendor.css -->
+	<!-- bower:css -->
+	<link rel="stylesheet" href="bower_components/jquery-mobile-bower/css/jquery.mobile-1.4.5.css" />
+	<!-- endbower -->
+	<!-- endbuild -->
+
+	<!-- build:css styles/main.css -->
+	<link rel="stylesheet" href="styles/main.css">
+	<!-- endbuild -->
+</head>
+<body>
+
+	<div data-role="header" data-position="fixed" data-theme="b">
+		<a href="#menuPanel" class="ui-btn ui-btn-left ui-corner-all ui-icon-bars ui-btn-icon-notext"></a>
+		<h4 id="fileLabel"></h4>
+	</div>
+
+	<div id="menuPanel" data-role="panel" data-display="push" data-theme="b">
+		<ul data-role="listview">
+			<li data-icon="false"><a id="menuOpen" data-rel="close">Open File</a></li>
+			<li data-icon="false"><a id="menuSave" data-rel="close">Save File</a></li>
+			<li data-icon="false"><a id="menuAdd" data-rel="close">Add Item</a></li>
+			<li data-icon="false"><a id="menuDelete" data-rel="close">Delete Item</a></li>
+		</ul>
+		<p class="info">Copyright &copy; 2015 Larry Wright</p>
+	</div>
+
+	<div data-role="main" class="ui-content">
+		<input data-type="search" id="itemFilter" autofocus>
+		<div id="itemList" data-role="collapsibleset" data-collapsed-icon="carat-r" data-expanded-icon="carat-d" data-filter="true" data-input="#itemFilter"></div>
+	</div>
+
+	<div id="messageBox" data-role="popup" data-position-to="window">
+		<div data-role="header" data-theme="b">
+			<h1 id="messageHeader"></h1>
+		</div>
+		<div id="messageText" role="main" class="ui-content" ></div>
+		<a id="messageOk" href="#" class="ui-btn ui-corner-all ui-shadow ui-btn-inline" data-rel="back">OK</a>
+		<a id="messageCancel" href="#" class="ui-btn ui-corner-all ui-shadow ui-btn-inline" data-rel="back">Cancel</a>
+	</div>
+
+	<iframe id="sandbox" src="sandbox.html" style="display:none"></iframe>
+
+	<!-- build:js scripts/vendor.js -->
+	<!-- bower:js -->
+	<script src="bower_components/jquery/jquery.js"></script>
+	<script src="bower_components/jquery-mobile-bower/js/jquery.mobile-1.4.5.js"></script>
+	<script src="bower_components/linkifyjs/dist/jquery.linkify.js"></script>
+	<!-- endbower -->
+	<!-- endbuild -->
+
+	<script src="scripts/dropins.js" id="dropboxjs" data-app-key="xy8ad1ul0xysp75"></script>
+
+	<!-- build:js scripts/main.js -->
+	<script src="scripts/main.js"></script>
+	<!-- endbuild -->
+
+
+</body>
+</html>
