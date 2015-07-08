@@ -13,7 +13,7 @@ function loadFile(filename) {
 	if (filename.length == 0) {
 		return;
 	}
-	readFile(filename, function(data) {
+	readSyncFile(filename, function(data) {
 		if (data.length > 0) {
 			renderData(filename, data);
 		}
@@ -21,10 +21,17 @@ function loadFile(filename) {
 }
 
 function renderData(filename, data) {
+	// clear existing data
+	if (!filename && !data) {
+		$('#fileLabel').text('');
+		$('#itemList').html('');
+		return;
+	}
+
 	var items = '';
 	var counter = 0;
-	var lines = data.split('\r\n');
-	//TODO: normalize line endings
+	data = data.replace(/\r\n/g, '\n')
+	var lines = data.split('\n');
 
 	// set filename in titlebar
 	$('#fileLabel').text(filename);
@@ -54,28 +61,142 @@ function renderData(filename, data) {
 	$('.items p').linkify();
 }
 
+function getFilename() {
+	return $('#fileLabel').text();
+}
+
+function setFilename(filename) {
+	chrome.storage.local.set({'filename': filename});
+	$('#fileLabel').text(filename);
+}
+
+/**********************************************************
+ * menu handlers
+ */
+
+function newFile() {
+	displayMessage(
+		'Enter a name for the new file:',
+		'New File', MSG_CANCEL | MSG_INPUT, function() {
+			var filename = $('#messageInput').val();
+			setFilename(filename);
+			renderData();
+		});
+}
+
 function openFile() {
-	// dynamically create an input element to allow file selection
+	chrome.storage.local.get('files', function(value) {
+		var files = value.files || [];
+		var options = '';
+		for(var i = 0; i < files.length; i++) {
+			options += '<option>' + files[i] + '</option>';
+		}
+		$('#messageSelect').html(options).selectmenu();
+	});
+	displayMessage(
+		'Name of file to open:',
+		'Open File', MSG_CANCEL | MSG_SELECT, function() {
+			var filename = $('#messageSelect-button span').text();
+			setFilename(filename);
+			loadFile(filename);
+		});
+}
+
+function saveFile() {
+	var data = serializeData();
+	var filename = getFilename();
+
+	// add filename to array of saved files
+	chrome.storage.local.get('files', function(value) {
+		var files = value.files || [];
+		if (files.indexOf(filename) == -1) {
+			files.push(filename);
+			chrome.storage.local.set({'files': files});
+		}
+	});
+	// save the file
+	writeSyncFile(filename, data);
+}
+
+function deleteFile() {
+	displayMessage(
+		'Are you sure you want to delete this file?',
+		'Confirm Delete', MSG_CANCEL, function() {
+			var filename = getFilename();
+			// delete file
+			deleteSyncFile(filename, function() {
+
+				// remove filename from array of saved files
+				chrome.storage.local.get('files', function(value) {
+					var files = value.files || [];
+					var index = files.indexOf(filename);
+					if (index >= 0) {
+						files.splice(index, 1);
+						chrome.storage.local.set({'files': files});
+					}
+				});
+				// render empty data
+				renderData();
+			});
+		});
+}
+
+function importFile() {
 	// load data from the choosen file
-	// upload file to Google drive
+	// save in syncFileSystem
 	$('<input type="file">').change(function() {
 		var file = $(this)[0].files[0];
 		var reader = new FileReader();
 		reader.onload = function() {
 			// set filename in local storage
-			chrome.storage.local.set({'filename': file.name});
+			setFilename(file.name);
 			// render data in html
 			renderData(file.name, reader.result);
-			// save file to SyncFileSystem
+			// save file to syncFileSystem
 			saveFile(file.name, reader.result);
 		};
 		reader.readAsText(file);
 	}).click();
 }
 
-function saveFile() {
+function exportFile() {
+	var data = serializeData();
+	if (data.length == 0) {
+		return;
+	}
+	var filename = getFilename();
+	// download file
+	var blob = new Blob([data]);
+	$(this).attr('href', window.URL.createObjectURL(blob));
+	$(this).attr('download', filename);
+}
+
+function addItem() {
+	var item = '<div class="items" data-role="collapsible" contenteditable="true" spellcheck="false"><h4>New</h4><p><br></p></div>';
+	$('#itemList').append(item).enhanceWithin();
+}
+
+function removeItem() {
+	var item = $('.items:not(.ui-collapsible-collapsed)');
+	if (item.length > 0) {
+		displayMessage(
+			'Are you sure you want to delete this item?',
+			'Confirm Delete', MSG_CANCEL, function() {
+				item.remove();
+			});
+	} else {
+		displayMessage(
+			'Unable to delete. No item was selected.',
+			'Delete', MSG_OK);
+	}
+}
+
+/**********************************************************
+ * syncFileSystem functions
+ */
+
+function serializeData() {
 	// get data from html and format as string with line breaks
-	var filename = $('#fileLabel').text();
 	$('.ui-collapsible-heading-status').text('');
 	var data = '';
 	$('.items').each(function() {
@@ -85,33 +206,10 @@ function saveFile() {
 		});
 		data += '\r\n';
 	});
-
-	writeFile(filename, data, function(error) {
-		errorMessage(error);
-	});
+	return data;
 }
 
-function addItem() {
-	var item = '<div class="items" data-role="collapsible" contenteditable="true" spellcheck="false"><h4>New</h4><p><br></p></div>';
-	$('#itemList').append(item).enhanceWithin();
-}
-
-function deleteItem() {
-	var item = $('.items:not(.ui-collapsible-collapsed)');
-	if (item.length > 0) {
-		displayMessage(
-			'Are you sure you want to delete this item?',
-			'Confirm Delete', true, function() {
-				item.remove();
-			});
-	} else {
-		displayMessage(
-			'Unable to delete. No item was selected.',
-			'Delete');
-	}
-}
-
-function readFile(filename, callback) {
+function readSyncFile(filename, callback) {
 	chrome.syncFileSystem.requestFileSystem(function(fs) {
 		fs.root.getFile(filename, null, function(fileEntry) {
 			fileEntry.file(function(fileObject) {
@@ -125,7 +223,7 @@ function readFile(filename, callback) {
 	});
 }
 
-function writeFile(filename, data, callback) {
+function writeSyncFile(filename, data, callback) {
 	chrome.syncFileSystem.requestFileSystem(function(fs) {
 		fs.root.getFile(filename, {create:true}, function(fileEntry) {
 			fileEntry.createWriter(function(writer) {
@@ -143,10 +241,34 @@ function writeFile(filename, data, callback) {
 	});
 }
 
-function displayMessage(message, header, showCancel, callback) {
+function deleteSyncFile(filename, callback) {
+	chrome.syncFileSystem.requestFileSystem(function(fs) {
+		fs.root.getFile(filename, null, function(fileEntry) {
+			fileEntry.remove(function() {
+				callback();
+			});
+		});
+	});
+}
+
+/**********************************************************
+ * helper functions
+ */
+var MSG_OK = 1;
+var MSG_CANCEL = 2;
+var MSG_INPUT = 4;
+var MSG_SELECT = 8;
+
+function displayMessage(message, header, type, callback) {
 	$('#messageText').html(message);
 	$('#messageHeader').html(header);
-	$('#messageCancel').toggle(showCancel);
+	$('#messageInput').val('');
+
+	$('#messageCancel').toggle(Boolean(type & MSG_CANCEL));
+	$('#messageInput').parent().toggle(Boolean(type & MSG_INPUT));
+	$('#messageSelect').parent().toggle(Boolean(type & MSG_SELECT));
+
+	$('#messageOk').unbind();
 	$('#messageOk').click(callback);
 	$('#messageBox').popup('open');
 }
@@ -170,21 +292,16 @@ $('#itemList').delegate('.items', 'blur', function(){
     }
 });
 
-// Event handlers
+/**********************************************************
+ * event handlers
+ */
 $(window).load(init);
+$('#menuNew').click(newFile);
 $('#menuOpen').click(openFile);
 $('#menuSave').click(saveFile);
-$('#menuAdd').click(addItem);
-$('#menuDelete').click(deleteItem);
+$('#menuDelete').click(deleteFile);
+$('#menuImport').click(importFile);
+$('#menuExport').click(exportFile);
+$('#menuAddItem').click(addItem);
+$('#menuRemoveItem').click(removeItem);
 
-
-/**
- * TODO:
- * - add New File menu item
- *     - dialog box for title
- * - change Open File
- *     - display dialog box with list of files (from syncFileSystem)
- * - add Import File (currently openFile)
- * - add Export File
- * - add Delete File
- */
