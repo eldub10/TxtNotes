@@ -3,7 +3,7 @@ html {
 }
 
 .items p {
-	margin: 3px 0;
+	margin: .2em 0;
 	-webkit-user-select: text;
 	cursor: text;
 }
@@ -12,19 +12,23 @@ html {
 	cursor: pointer;
 }
 
+#messageBox {
+	width: 20em;
+	text-align: center;
+}
+
 #messageOk,
 #messageCancel {
-	width: 80px;
+	width: 6em;
 }
 
-#messageBox {
-	width:320px;
-	text-align:center
+.ui-input-text,
+.ui-select {
+	margin: 0 .5em;
 }
-
 .info {
 	position: fixed;
 	bottom: 0;
-	font-size: 12px;
+	font-size: .75em;
 	color: #ccc;
 }
