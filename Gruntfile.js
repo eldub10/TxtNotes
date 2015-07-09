@@ -21,7 +21,7 @@ module.exports = function (grunt) {
   // Configurable paths
   var config = {
     app: 'app',
-    dist: 'dist',
+    dist: 'www',
     tasks: grunt.cli.tasks
   };
 
@@ -92,7 +92,7 @@ module.exports = function (grunt) {
         options: {
           open:
             {
-              target: '--load-and-launch-app=' + path.resolve('app'),
+              target: '--load-and-launch-app=' + path.resolve(config.app),
               appName: 'chrome',
             },
           base: [
@@ -266,28 +266,10 @@ module.exports = function (grunt) {
       }
     },
 
-    // Compress files in dist to make Chrome Apps package
-    compress: {
-      dist: {
-        options: {
-          archive: function() {
-            var manifest = grunt.file.readJSON('app/manifest.json');
-            return 'package/TxtNotes-' + manifest.version + '.zip';
-          }
-        },
-        files: [{
-          expand: true,
-          cwd: 'dist/',
-          src: ['**'],
-          dest: ''
-        }]
-      }
-    },
-
     // Create Chrome crx package
     crx: {
       dist: {
-        src: 'dist/**/*',
+        src: '<%= config.dist %>/**/*',
         dest: 'package/',
       },
     },
@@ -342,6 +324,6 @@ module.exports = function (grunt) {
   ]);
 
   grunt.registerTask('info', function() {
-    console.log(path.resolve('app'));
+    console.log(path.resolve(config.app));
   });
 };
