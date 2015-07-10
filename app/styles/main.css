@@ -6,6 +6,7 @@ html {
 	margin: .2em 0;
 	-webkit-user-select: text;
 	cursor: text;
+	overflow: hidden;
 }
 
 .items a {

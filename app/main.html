@@ -16,26 +16,23 @@
 </head>
 <body>
 
-	<div data-role="header" data-position="fixed" data-theme="b">
+	<div id="header" data-role="header" data-position="fixed" data-tap-toggle="false" data-theme="b">
 		<a href="#menuPanel" class="ui-btn ui-btn-left ui-corner-all ui-icon-bars ui-btn-icon-notext"></a>
 		<h4 id="fileLabel"></h4>
 	</div>
 
 	<div id="menuPanel" data-role="panel" data-display="push" data-theme="b">
 		<ul data-role="listview">
-			<li data-icon="false"><a id="menuNew" data-rel="close">New File</a></li>
 			<li data-icon="false"><a id="menuOpen" data-rel="close">Open File</a></li>
 			<li data-icon="false"><a id="menuSave" data-rel="close">Save File</a></li>
-			<li data-icon="false"><a id="menuDelete" data-rel="close">Delete File</a></li>
-			<li data-icon="false"><a id="menuImport" data-rel="close">Import File</a></li>
-			<li data-icon="false"><a id="menuExport" data-rel="close">Export File</a></li>
 			<li data-icon="false"><a id="menuAddItem" data-rel="close">Add Item</a></li>
+			<li data-icon="false"><a id="menuEditItem" data-rel="close">Edit Item</a></li>
 			<li data-icon="false"><a id="menuRemoveItem" data-rel="close">Remove Item</a></li>
 		</ul>
 		<p class="info">Copyright &copy; 2015 Larry Wright</p>
 	</div>
 
-	<div data-role="main" class="ui-content">
+	<div id="main" data-role="main" class="ui-content">
 		<input data-type="search" id="itemFilter" autofocus>
 		<div id="itemList" data-role="collapsibleset" data-collapsed-icon="carat-r" data-expanded-icon="carat-d" data-filter="true" data-input="#itemFilter"></div>
 	</div>
