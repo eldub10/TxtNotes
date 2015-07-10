@@ -1,12 +1,6 @@
 // Generated on 2015-07-04 using generator-chromeapp 0.2.19
 'use strict';
 
-// # Globbing
-// for performance reasons we're only matching one level down:
-// 'test/spec/{,*/}*.js'
-// use this if you want to recursively match all subfolders:
-// 'test/spec/**/*.js'
-
 module.exports = function (grunt) {
 
   // Load grunt tasks automatically
@@ -39,7 +33,6 @@ module.exports = function (grunt) {
       },
       js: {
         files: ['<%= config.app %>/scripts/{,*/}*.js'],
-        tasks: ['jshint'],
         options: {
           livereload: true
         }
@@ -127,20 +120,6 @@ module.exports = function (grunt) {
       }
     },
 
-    // Make sure code styles are up to par and there are no obvious mistakes
-    jshint: {
-      options: {
-        jshintrc: '.jshintrc',
-        reporter: require('jshint-stylish')
-      },
-      all: [
-        'Gruntfile.js',
-        '<%= config.app %>/scripts/{,*/}*.js',
-        '!<%= config.app %>/scripts/vendor/*',
-        'test/spec/{,*/}*.js'
-      ]
-    },
-
     // Mocha testing framework configuration options
     mocha: {
       all: {
@@ -180,32 +159,6 @@ module.exports = function (grunt) {
       css: ['<%= config.dist %>/styles/{,*/}*.css']
     },
 
-    // By default, your main.html --Usemin block-- will take care of
-    // minification. These next options are pre-configured if you do not wish
-    // to use the Usemin blocks.
-    // cssmin: {
-    //   dist: {
-    //     files: {
-    //       '<%= config.dist %>/styles/main.css': [
-    //         '.tmp/styles/{,*/}*.css',
-    //         '<%= config.app %>/styles/{,*/}*.css'
-    //       ]
-    //     }
-    //   }
-    // },
-    // uglify: {
-    //   dist: {
-    //     files: {
-    //       '<%= config.dist %>/scripts/scripts.js': [
-    //         '<%= config.dist %>/scripts/scripts.js'
-    //       ]
-    //     }
-    //   }
-    // },
-    // concat: {
-    //   dist: {}
-    // },
-
     // Copies remaining files to places other tasks can use
     copy: {
       dist: {
@@ -217,7 +170,8 @@ module.exports = function (grunt) {
           src: [
             'images/{,*/}*.{jpg,png,gif}',
             '{,*/}*.html',
-            'styles/fonts/{,*/}*.*'
+            '{,*/}manifest.json',
+            'scripts/{,*/}background.js'
           ]
         }]
       },
@@ -227,6 +181,16 @@ module.exports = function (grunt) {
         cwd: '<%= config.app %>/styles',
         dest: '.tmp/styles/',
         src: '{,*/}*.css'
+      },
+      apk: {
+        expand: true,
+        cwd: 'platforms/android/build/outputs/apk/',
+        src: 'android-armv7-debug.apk',
+        dest: 'package/',
+        rename: function() {
+          var manifest = grunt.file.readJSON('app/manifest.json');
+          return 'package/txtnotes-' + manifest.version + '.apk';
+        }
       }
     },
 
@@ -246,24 +210,6 @@ module.exports = function (grunt) {
       ],
     },
 
-    // Merge event page, update build number, exclude the debug script
-    chromeManifest: {
-      dist: {
-        options: {
-          buildnumber: false,
-          background: {
-            target: 'scripts/background.js',
-            exclude: [
-              'scripts/chromereload.js'
-            ]
-          },
-          removeFields: [],
-        },
-        src: '<%= config.app %>',
-        dest: '<%= config.dist %>'
-      }
-    },
-
     // Create Chrome crx package
     crx: {
       dist: {
@@ -274,23 +220,16 @@ module.exports = function (grunt) {
 
     // Cordova (cca)
     cordovacli: {
+      options: {
+        path: '/',
+        cli: 'cca'  // cca or cordova
+      },
+      build_android: {
         options: {
-            path: '.',
-            cli: 'cca'  // cca or cordova
-        },
-        add_platforms: {
-            options: {
-                command: 'platform',
-                action: 'add',
-                platforms: ['android']
-            }
-        },
-        build_android: {
-            options: {
-                command: 'build',
-                platforms: ['android']
-            }
+          command: 'build',
+          platforms: ['android']
         }
+      }
     }
 
   }); //end grunt.initConfig
@@ -325,25 +264,21 @@ module.exports = function (grunt) {
 
   grunt.registerTask('build', [
     'clean:dist',
-    'chromeManifest:dist',
     'useminPrepare',
     'concurrent:dist',
     'concat',
     'cssmin',
     'uglify',
-    'copy',
+    'copy:dist',
     'usemin',
     'crx',
-    'cordovacli'
+    'cordovacli',
+    'copy:apk'
   ]);
 
   grunt.registerTask('default', [
-    'newer:jshint',
     'test',
     'build'
   ]);
 
-  grunt.registerTask('info', function() {
-    console.log(path.resolve(config.app));
-  });
 };
