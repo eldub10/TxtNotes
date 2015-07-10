@@ -250,7 +250,7 @@ module.exports = function (grunt) {
     chromeManifest: {
       dist: {
         options: {
-          buildnumber: true,
+          buildnumber: false,
           background: {
             target: 'scripts/background.js',
             exclude: [
@@ -272,7 +272,28 @@ module.exports = function (grunt) {
       },
     },
 
-  });
+    // Cordova (cca)
+    cordovacli: {
+        options: {
+            path: '.',
+            cli: 'cca'  // cca or cordova
+        },
+        add_platforms: {
+            options: {
+                command: 'platform',
+                action: 'add',
+                platforms: ['android']
+            }
+        },
+        build_android: {
+            options: {
+                command: 'build',
+                platforms: ['android']
+            }
+        }
+    }
+
+  }); //end grunt.initConfig
 
   grunt.registerTask('debug', function (platform) {
     var watch = grunt.config('watch');
@@ -312,7 +333,8 @@ module.exports = function (grunt) {
     'uglify',
     'copy',
     'usemin',
-    'crx'
+    'crx',
+    'cordovacli'
   ]);
 
   grunt.registerTask('default', [

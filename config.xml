@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?><widget id="com.your.company.HelloWorld" version="0.0.3" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    <name>TxtNotes</name>
+    <description>Plain text description of this app</description>
+    <author email="dev@larrypdx.com" href="http://larrypdx.com">Author Name &lt;a@b.com></author>
+    <content src="plugins/cordova-plugin-chrome-apps-bootstrap/chromeapp.html"/>
+    
+<preference name="android-minSdkVersion" value="14"/><platform name="android"><icon src="www/images/icon_128.png"/><icon src="www/images/icon_16.png" width="16"/><icon src="www/images/icon_128.png" width="128"/></platform><platform name="ios"><icon src="www/images/icon_128.png"/><icon src="www/images/icon_16.png" width="16"/><icon src="www/images/icon_128.png" width="128"/></platform></widget>

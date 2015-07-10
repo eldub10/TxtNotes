@@ -1,8 +1,11 @@
 {
   "name": "txtnotes",
   "version": "0.0.0",
-  "dependencies": {},
+  "dependencies": {
+    "cca": "^0.7.1"
+  },
   "devDependencies": {
+    "cordova": "^5.1.1",
     "grunt": "~0.4.1",
     "grunt-bower-install": "~1.0.0",
     "grunt-chrome-manifest": "~0.2.0",
@@ -15,6 +18,7 @@
     "grunt-contrib-jshint": "~0.9.2",
     "grunt-contrib-uglify": "~0.4.0",
     "grunt-contrib-watch": "~0.6.1",
+    "grunt-cordovacli": "^0.7.1",
     "grunt-crx": "~1.0.3",
     "grunt-mocha": "~0.4.10",
     "grunt-newer": "~0.6.0",
