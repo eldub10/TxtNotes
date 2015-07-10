@@ -26,6 +26,11 @@ html {
 .ui-select {
 	margin: 0 .5em;
 }
+
+.ui-select span {
+	height: 1em;
+}
+
 .info {
 	position: fixed;
 	bottom: 0;

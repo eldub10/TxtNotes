@@ -1,33 +1,32 @@
 
-/**
- * Main
+/**********************************************************
+ * main
  */
+
+var app = {
+	'filename': '',
+	'storage': chrome.storage.local
+}
+
 function init() {
 	// look for filename in local storage
-	chrome.storage.local.get('filename', function(value) {
-		loadFile(value.filename);
+	getFilename(function(filename) {
+		if (filename && filename.length > 0) {
+			app.filename = filename;
+			loadFile(app.filename);
+		}
 	});
 }
 
 function loadFile(filename) {
-	if (filename.length == 0) {
-		return;
-	}
-	readSyncFile(filename, function(data) {
-		if (data.length > 0) {
+	getFile(filename, function(data) {
+		if (data) {
 			renderData(filename, data);
 		}
 	});
 }
 
 function renderData(filename, data) {
-	// clear existing data
-	if (!filename && !data) {
-		$('#fileLabel').text('');
-		$('#itemList').html('');
-		return;
-	}
-
 	var items = '';
 	var counter = 0;
 	data = data.replace(/\r\n/g, '\n')
@@ -61,13 +60,74 @@ function renderData(filename, data) {
 	$('.items p').linkify();
 }
 
-function getFilename() {
-	return $('#fileLabel').text();
+function serializeData() {
+	// get data from html and format as string with line breaks
+	$('.ui-collapsible-heading-status').text('');
+	var data = '';
+	$('.items').each(function() {
+		data += $(this).find('h4').text() + '\r\n';
+		$(this).find('div p').each(function() {
+			data += $(this).text() + '\r\n';
+		});
+		data += '\r\n';
+	});
+	return data;
+}
+
+/**********************************************************
+ * sync storage functions
+ */
+
+function getFilename(callback) {
+	app.storage.get('filename', function(value) {
+		callback(value.filename);
+	});
 }
 
 function setFilename(filename) {
-	chrome.storage.local.set({'filename': filename});
-	$('#fileLabel').text(filename);
+	app.filename = filename;
+	app.storage.set({'filename': filename});
+
+	getFileList(function(files) {
+		if (files.indexOf(app.filename) === -1) {
+			files.push(app.filename);
+			app.storage.set({'files': files});
+		}
+	});
+}
+
+function removeFilename() {
+	getFileList(function(files) {
+		var index = files.indexOf(app.filename);
+		if (index >= 0) {
+			files.splice(index, 1);
+			app.storage.set({'files': files});
+		}
+		app.storage.set({'filename': ''});
+		app.filename = '';
+	});
+}
+
+function getFileList(callback) {
+	app.storage.get('files', function(value) {
+		return callback(value.files || []);
+	});
+}
+
+function getFile(filename, callback) {
+	app.storage.get(filename, function(value) {
+		callback(value[filename]);
+	});
+}
+
+function setFile(filename, data) {
+	var params = {};
+	params[filename] = data;
+	app.storage.set(params);
+}
+
+function removeFile(filename) {
+	app.storage.remove(filename);
 }
 
 /**********************************************************
@@ -80,79 +140,68 @@ function newFile() {
 		'New File', MSG_CANCEL | MSG_INPUT, function() {
 			var filename = $('#messageInput').val();
 			setFilename(filename);
-			renderData();
+			renderData(filename, "New\r\n");
 		});
+	$('#messageInput').focus();
 }
 
 function openFile() {
-	chrome.storage.local.get('files', function(value) {
-		var files = value.files || [];
+	getFileList(function(files) {
 		var options = '';
 		for(var i = 0; i < files.length; i++) {
 			options += '<option>' + files[i] + '</option>';
 		}
+		$('#messageSelect-button span').text('');
 		$('#messageSelect').html(options).selectmenu();
 	});
 	displayMessage(
-		'Name of file to open:',
+		'Select a file to open:',
 		'Open File', MSG_CANCEL | MSG_SELECT, function() {
 			var filename = $('#messageSelect-button span').text();
-			setFilename(filename);
-			loadFile(filename);
+			if(filename.length > 0) {
+				setFilename(filename);
+				loadFile(filename);
+			}
 		});
 }
 
 function saveFile() {
-	var data = serializeData();
-	var filename = getFilename();
-
-	// add filename to array of saved files
-	chrome.storage.local.get('files', function(value) {
-		var files = value.files || [];
-		if (files.indexOf(filename) == -1) {
-			files.push(filename);
-			chrome.storage.local.set({'files': files});
-		}
-	});
-	// save the file
-	writeSyncFile(filename, data);
+	if (app.filename.length === 0) {
+		$('#messageInput').val(app.filename);
+		displayMessage(
+			'Enter a filename:',
+			'Save As', MSG_CANCEL | MSG_INPUT, function() {
+				setFilename($('#messageInput').val());
+				setFile(app.filename, serializeData());
+			});
+	}
+	setFile(app.filename, serializeData());
 }
 
 function deleteFile() {
 	displayMessage(
 		'Are you sure you want to delete this file?',
 		'Confirm Delete', MSG_CANCEL, function() {
-			var filename = getFilename();
 			// delete file
-			deleteSyncFile(filename, function() {
-
-				// remove filename from array of saved files
-				chrome.storage.local.get('files', function(value) {
-					var files = value.files || [];
-					var index = files.indexOf(filename);
-					if (index >= 0) {
-						files.splice(index, 1);
-						chrome.storage.local.set({'files': files});
-					}
-				});
-				// render empty data
-				renderData();
-			});
+			removeFile(app.filename);
+			// remove filename
+			removeFilename();
+			// render empty data
+			$('#fileLabel').text('');
+			$('#itemList').html('');
 		});
 }
 
 function importFile() {
-	// load data from the choosen file
-	// save in syncFileSystem
-	$('<input type="file">').change(function() {
+	// display html file input dialog
+	$('<input type="file" accept="text/*">').change(function() {
+		// read data from selected file
 		var file = $(this)[0].files[0];
 		var reader = new FileReader();
 		reader.onload = function() {
-			// set filename in local storage
+			// save data
 			setFilename(file.name);
-			// render data in html
 			renderData(file.name, reader.result);
-			// save file to syncFileSystem
 			saveFile(file.name, reader.result);
 		};
 		reader.readAsText(file);
@@ -161,14 +210,13 @@ function importFile() {
 
 function exportFile() {
 	var data = serializeData();
-	if (data.length == 0) {
+	if (data.length === 0) {
 		return;
 	}
-	var filename = getFilename();
 	// download file
 	var blob = new Blob([data]);
 	$(this).attr('href', window.URL.createObjectURL(blob));
-	$(this).attr('download', filename);
+	$(this).attr('download', app.filename);
 }
 
 function addItem() {
@@ -192,66 +240,6 @@ function removeItem() {
 }
 
 /**********************************************************
- * syncFileSystem functions
- */
-
-function serializeData() {
-	// get data from html and format as string with line breaks
-	$('.ui-collapsible-heading-status').text('');
-	var data = '';
-	$('.items').each(function() {
-		data += $(this).find('h4').text() + '\r\n';
-		$(this).find('div p').each(function() {
-			data += $(this).text() + '\r\n';
-		});
-		data += '\r\n';
-	});
-	return data;
-}
-
-function readSyncFile(filename, callback) {
-	chrome.syncFileSystem.requestFileSystem(function(fs) {
-		fs.root.getFile(filename, null, function(fileEntry) {
-			fileEntry.file(function(fileObject) {
-				var reader = new FileReader();
-				reader.onloadend = function(e) {
-					callback(e.target.result);
-				}
-				reader.readAsText(fileObject);
-			});
-		});
-	});
-}
-
-function writeSyncFile(filename, data, callback) {
-	chrome.syncFileSystem.requestFileSystem(function(fs) {
-		fs.root.getFile(filename, {create:true}, function(fileEntry) {
-			fileEntry.createWriter(function(writer) {
-				writer.onwriteend = function(e) {
-					writer.onwriteend = null;
-					writer.truncate(e.total);
-				}
-				writer.onerror = function(e) {
-					callback(e);
-				}
-				var blob = new Blob([data]);
-				writer.write(blob);
-			});
-		});
-	});
-}
-
-function deleteSyncFile(filename, callback) {
-	chrome.syncFileSystem.requestFileSystem(function(fs) {
-		fs.root.getFile(filename, null, function(fileEntry) {
-			fileEntry.remove(function() {
-				callback();
-			});
-		});
-	});
-}
-
-/**********************************************************
  * helper functions
  */
 var MSG_OK = 1;
@@ -262,7 +250,6 @@ var MSG_SELECT = 8;
 function displayMessage(message, header, type, callback) {
 	$('#messageText').html(message);
 	$('#messageHeader').html(header);
-	$('#messageInput').val('');
 
 	$('#messageCancel').toggle(Boolean(type & MSG_CANCEL));
 	$('#messageInput').parent().toggle(Boolean(type & MSG_INPUT));
@@ -280,7 +267,7 @@ function errorMessage(message, display) {
 	}
 }
 
-// watch for changes (edits) in the item list and save them
+// watch for changes in the itemlist and save them
 $('#itemList').delegate('.items', 'focus', function(){
 	$('.ui-collapsible-heading-status').text('');
     $(this).data('before', $(this).text());
@@ -295,6 +282,7 @@ $('#itemList').delegate('.items', 'blur', function(){
 /**********************************************************
  * event handlers
  */
+
 $(window).load(init);
 $('#menuNew').click(newFile);
 $('#menuOpen').click(openFile);
