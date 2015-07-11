@@ -2,7 +2,7 @@
   "name": "txtnotes",
   "version": "0.0.0",
   "dependencies": {
-    "jquery": "~2.1.4",
+    "jquery": "~1.10.0",
     "jquery-mobile-bower": "~1.4.5",
     "linkifyjs": "~1.1.7"
   },

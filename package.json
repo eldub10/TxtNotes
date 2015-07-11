@@ -2,7 +2,8 @@
   "name": "txtnotes",
   "version": "0.0.0",
   "dependencies": {
-    "cca": "^0.7.1"
+    "cca": "^0.7.1",
+    "bower": "~1.4.1"
   },
   "devDependencies": {
     "cordova": "^5.1.1",
@@ -23,6 +24,9 @@
     "grunt-usemin": "~2.1.0",
     "load-grunt-tasks": "~0.2.0",
     "time-grunt": "~0.3.1"
+  },
+  "scripts": {
+    "postinstall" : "node_modules/.bin/bower install"
   },
   "engines": {
     "node": ">=0.8.0"
