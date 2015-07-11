@@ -8,7 +8,6 @@
   "devDependencies": {
     "cordova": "^5.1.1",
     "grunt": "~0.4.1",
-    "grunt-bower-install": "~1.0.0",
     "grunt-concurrent": "~0.5.0",
     "grunt-contrib-clean": "~0.5.0",
     "grunt-contrib-concat": "^0.5.1",
@@ -26,7 +25,7 @@
     "time-grunt": "~0.3.1"
   },
   "scripts": {
-    "postinstall" : "node_modules/.bin/bower install"
+    "postinstall": "node_modules/.bin/bower install"
   },
   "engines": {
     "node": ">=0.8.0"
