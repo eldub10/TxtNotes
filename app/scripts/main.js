@@ -35,7 +35,7 @@ function renderData(filename, data) {
 	for (var i = 0; i < lines.length; i++) {
 		if (lines[i].length > 0) {
 			if (counter === 0) {
-				items += '<div class="items" data-role="collapsible" spellcheck="false"><h4>' + lines[i] + '</h4>';
+				items += '<div class="items" data-role="collapsible" spellcheck="false"><h4><div>' + lines[i] + '</div></h4>';
 			} else {
 				items += '<p>' + lines[i] + '</p>';
 			}
@@ -131,7 +131,13 @@ function openFile() {
 function editItem() {
 	var item = $('.items:not(.ui-collapsible-collapsed)');
 	if (item.length > 0) {
+
+		// set to editable
 		item.attr('contenteditable', 'true');
+
+		// don't scroll to top
+		$('html, body').scrollTop(item.offset().top - 42);
+
 	} else {
 		displayMessage(
 			'Unable to edit. No item was selected.',
@@ -140,7 +146,7 @@ function editItem() {
 }
 
 function addItem() {
-	var item = '<div class="items" data-role="collapsible" contenteditable="true" spellcheck="false"><h4>New</h4><p><br></p></div>';
+	var item = '<div class="items" data-role="collapsible" contenteditable="true" spellcheck="false"><h4><div>New</div></h4><p><br></p></div>';
 	$('#itemList').append(item).enhanceWithin();
 	$('.items').last().collapsible('expand');
 	$('html, body').animate({
