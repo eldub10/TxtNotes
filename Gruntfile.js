@@ -88,15 +88,6 @@ module.exports = function (grunt) {
             '<%= config.app %>'
           ]
         }
-      },
-      test: {
-        options: {
-          open: false,
-          base: [
-            'test',
-            '<%= config.app %>'
-          ]
-        }
       }
     },
 
@@ -113,16 +104,6 @@ module.exports = function (grunt) {
             '!<%= config.dist %>/.git*'
           ]
         }]
-      }
-    },
-
-    // Mocha testing framework configuration options
-    mocha: {
-      all: {
-        options: {
-          run: true,
-          urls: ['http://localhost:<%= connect.options.port %>/main.html']
-        }
       }
     },
 
@@ -192,10 +173,7 @@ module.exports = function (grunt) {
       ],
       dist: [
         'copy:styles'
-      ],
-      test: [
-        'copy:styles'
-      ],
+      ]
     },
 
     // Create Chrome crx package
@@ -245,11 +223,6 @@ module.exports = function (grunt) {
     ]);
   });
 
-  grunt.registerTask('test', [
-    'connect:test',
-    'mocha'
-  ]);
-
   grunt.registerTask('build', [
     'clean:dist',
     'useminPrepare',
@@ -265,7 +238,6 @@ module.exports = function (grunt) {
   ]);
 
   grunt.registerTask('default', [
-    'test',
     'build'
   ]);
 
