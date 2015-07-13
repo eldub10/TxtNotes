@@ -15,11 +15,15 @@ function init() {
 	getFilename(function(filename) {
 		if (filename && filename.length > 0) {
 			app.filename = filename;
-			getFile(filename, function(data) {
-				if (data) {
-					renderData(filename, data);
-				}
-			});
+			loadFile(filename);
+		}
+	});
+}
+
+function loadFile(filename) {
+	getFile(filename, function(data) {
+		if (data) {
+			renderData(filename, data);
 		}
 	});
 }
@@ -85,6 +89,31 @@ function getFilename(callback) {
 function setFilename(filename) {
 	app.filename = filename;
 	app.storage.set({'filename': filename});
+
+	getFileList(function(files) {
+		if (files.indexOf(app.filename) === -1) {
+			files.push(app.filename);
+			app.storage.set({'files': files});
+		}
+	});
+}
+
+function removeFilename() {
+	getFileList(function(files) {
+		var index = files.indexOf(app.filename);
+		if (index >= 0) {
+			files.splice(index, 1);
+			app.storage.set({'files': files});
+		}
+		app.storage.set({'filename': ''});
+		app.filename = '';
+	});
+}
+
+function getFileList(callback) {
+	app.storage.get('files', function(value) {
+		return callback(value.files || []);
+	});
 }
 
 function getFile(filename, callback) {
@@ -107,14 +136,71 @@ function removeFile(filename) {
  * menu handlers
  */
 
-function saveFile() {
-	if (app.filename.length > 0) {
-		$('.items').removeAttr('contenteditable');
-		setFile(app.filename, serializeData());
-	}
+function newFile() {
+	displayMessage(
+		'Enter a name for the new file:',
+		'New File', MSG_CANCEL | MSG_INPUT, function() {
+			var filename = $('#messageInput').val();
+			if (filename.length > 0) {
+				setFilename(filename);
+				renderData(filename, "\r\n");
+				addItem();
+			}
+		});
+	$('#messageInput').focus();
 }
 
 function openFile() {
+	getFileList(function(files) {
+		var options = '';
+		for(var i = 0; i < files.length; i++) {
+			options += '<option>' + files[i] + '</option>';
+		}
+		$('#messageSelect-button span').text('');
+		$('#messageSelect').html(options).selectmenu();
+	});
+	displayMessage(
+		'Select a file to open:',
+		'Open File', MSG_CANCEL | MSG_SELECT, function() {
+			var filename = $('#messageSelect-button span').text();
+			if(filename.length > 0) {
+				setFilename(filename);
+				loadFile(filename);
+			}
+		});
+}
+
+function saveFile() {
+	if (app.filename.length === 0) {
+		$('#messageInput').val(app.filename);
+		displayMessage(
+			'Enter a filename:',
+			'Save As', MSG_CANCEL | MSG_INPUT, function() {
+				var filename = $('#messageInput').val();
+				if (filename.length > 0) {
+					setFilename(filename);
+				}
+			});
+	}
+	$('.items').removeAttr('contenteditable');
+	setFile(app.filename, serializeData());
+}
+
+function deleteFile() {
+	displayMessage(
+		'Are you sure you want to delete this file?',
+		'Confirm Delete', MSG_CANCEL, function() {
+			// delete file
+			removeFile(app.filename);
+			// remove filename
+			removeFilename();
+			// render empty data
+			$('#fileLabel').text('');
+			$('#itemList').html('');
+		});
+}
+
+function importFile() {
 	// display html file input dialog
 	$('<input type="file" accept="text/*">').change(function() {
 		// read data from selected file
@@ -130,16 +216,22 @@ function openFile() {
 	}).click();
 }
 
+function exportFile() {
+	var data = serializeData();
+	if (data.length === 0) {
+		return;
+	}
+	// download file
+	var blob = new Blob([data]);
+	$(this).attr('href', window.URL.createObjectURL(blob));
+	$(this).attr('download', app.filename);
+}
+
 function editItem() {
 	var item = $('.items:not(.ui-collapsible-collapsed)');
 	if (item.length > 0) {
-
-		// set to editable
-		item.attr('contenteditable', 'true');
-
-		// don't scroll to top
-		$('html, body').scrollTop(item.offset().top - 42);
-
+		// set to editable and save on focusout
+		item.attr('contenteditable', 'true').focus().focusout(saveFile);
 	} else {
 		displayMessage(
 			'Unable to edit. No item was selected.',
@@ -150,10 +242,7 @@ function editItem() {
 function addItem() {
 	var item = '<div class="items" data-role="collapsible" contenteditable="true" spellcheck="false"><h4><div>New</div></h4><p><br></p></div>';
 	$('#itemList').append(item).enhanceWithin();
-	$('.items').last().collapsible('expand');
-	$('html, body').animate({
-		scrollTop: $('.items').last().offset().top
-	});
+	$('.items').last().collapsible('expand').focus().focusout(saveFile);
 }
 
 function removeItem() {
@@ -195,7 +284,7 @@ function displayMessage(message, header, type, callback) {
 function errorHandler(message, display) {
 	console.log(message);
 	if (display) {
-		displayMessage(message, "Error");
+		displayMessage(message, 'Error');
 	}
 }
 
@@ -204,10 +293,14 @@ function errorHandler(message, display) {
  */
 
 $(window).load(init);
+$('#menuNew').click(newFile);
 $('#menuOpen').click(openFile);
 $('#menuSave').click(saveFile);
-$('#menuAddItem').click(addItem);
-$('#menuEditItem').click(editItem);
-$('#menuRemoveItem').click(removeItem);
+$('#menuDelete').click(deleteFile);
+$('#menuImport').click(importFile);
+$('#menuExport').click(exportFile);
+$('.menuAddItem').click(addItem);
+$('.menuEditItem').click(editItem);
+$('.menuRemoveItem').click(removeItem);
 
-});
+}); //end jQuery

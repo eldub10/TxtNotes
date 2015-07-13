@@ -15,17 +15,26 @@
 <body>
 
 	<div id="header" data-role="header" data-position="fixed" data-tap-toggle="false" data-theme="b">
-		<a href="#menuPanel" class="ui-btn ui-btn-left ui-corner-all ui-icon-bars ui-btn-icon-notext"></a>
+		<a href="#menuPanel" class="ui-btn ui-btn-inline ui-corner-all ui-icon-bars ui-btn-icon-notext"></a>
 		<h4 id="fileLabel"></h4>
+		<div class="ui-btn-right">
+			<a class="menuAddItem ui-btn ui-btn-inline ui-corner-all ui-icon-plus ui-btn-icon-notext"></a>
+			<a class="menuEditItem ui-btn ui-btn-inline ui-corner-all ui-icon-edit ui-btn-icon-notext"></a>
+			<a class="menuRemoveItem ui-btn ui-btn-inline ui-corner-all ui-icon-delete ui-btn-icon-notext"></a>
+		</div>
 	</div>
 
 	<div id="menuPanel" data-role="panel" data-display="push" data-theme="b">
 		<ul data-role="listview">
+			<li data-icon="false"><a id="menuNew" data-rel="close">New File</a></li>
 			<li data-icon="false"><a id="menuOpen" data-rel="close">Open File</a></li>
 			<li data-icon="false"><a id="menuSave" data-rel="close">Save File</a></li>
-			<li data-icon="false"><a id="menuAddItem" data-rel="close">Add Item</a></li>
-			<li data-icon="false"><a id="menuEditItem" data-rel="close">Edit Item</a></li>
-			<li data-icon="false"><a id="menuRemoveItem" data-rel="close">Remove Item</a></li>
+			<li data-icon="false"><a id="menuDelete" data-rel="close">Delete File</a></li>
+			<li data-icon="false"><a id="menuImport" data-rel="close">Import File</a></li>
+			<li data-icon="false"><a id="menuExport" data-rel="close">Export File</a></li>
+			<li data-icon="false"><a class="menuAddItem" data-rel="close">Add Item</a></li>
+			<li data-icon="false"><a class="menuEditItem" data-rel="close">Edit Item</a></li>
+			<li data-icon="false"><a class="menuRemoveItem" data-rel="close">Remove Item</a></li>
 		</ul>
 		<p class="info">Copyright &copy; 2015 Larry Wright</p>
 	</div>
