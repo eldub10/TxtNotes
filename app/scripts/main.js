@@ -2,6 +2,8 @@
 /**********************************************************
  * main
  */
+jQuery(function($) {
+'use strict';
 
 var app = {
 	'filename': '',
@@ -207,3 +209,5 @@ $('#menuSave').click(saveFile);
 $('#menuAddItem').click(addItem);
 $('#menuEditItem').click(editItem);
 $('#menuRemoveItem').click(removeItem);
+
+});
