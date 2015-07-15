@@ -7,7 +7,7 @@ jQuery(function($) {
 
 var app = {
 	'filename': '',
-	'storage': chrome.storage.local
+	'storage': chrome.storage.sync
 }
 
 function init() {
@@ -118,14 +118,19 @@ function getFileList(callback) {
 
 function getFile(filename, callback) {
 	app.storage.get(filename, function(value) {
-		callback(value[filename]);
+		var data = LZString.decompressFromUTF16(value[filename]);
+		callback(data);
 	});
 }
 
 function setFile(filename, data) {
 	var params = {};
-	params[filename] = data;
-	app.storage.set(params);
+	params[filename] = LZString.compressToUTF16(data);
+	app.storage.set(params, function() {
+		if(chrome.runtime.lastError) {
+			displayMessage(chrome.runtime.lastError.message, "Unable to Save");
+		}
+	});
 }
 
 function removeFile(filename) {
