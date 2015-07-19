@@ -6,26 +6,81 @@ jQuery(function($) {
 'use strict';
 
 var app = {
-	'filename': '',
-	'storage': chrome.storage.sync
+	file: null
 }
+var drive = new Drive();
 
 function init() {
-	// look for filename in local storage
-	getFilename(function(filename) {
-		if (filename && filename.length > 0) {
-			app.filename = filename;
-			loadFile(filename);
+	drive.auth(false, function() {
+		console.log(drive.authToken);
+		loadPage(Boolean(drive.authToken) ? '#main' : '#signin');
+	})
+}
+
+function signIn() {
+	drive.auth(true, function() {
+		if (drive.authToken) {
+			console.log(drive.authToken);
+			loadPage('#main');
+		} else {
+			$('#labelSignin').text('Unable to connect. ' + chrome.runtime.lastError.message);
+			$('#popupSignin').popup('open');
 		}
 	});
 }
 
-function loadFile(filename) {
-	getFile(filename, function(data) {
-		if (data) {
-			renderData(filename, data);
-		}
+function signOut() {
+	drive.revoke(function() {
+		console.log(drive.authToken);
+		loadPage('#signin');
 	});
+}
+
+function localOnly() {
+	loadPage('#main');
+}
+
+function loadConfig(callback) {
+	chrome.storage.local.get(null, function(value) {
+		app.file = value;
+		callback();
+	});
+}
+
+function saveConfig() {
+	chrome.storage.local.set(app.file);
+}
+
+function loadPage(page) {
+	$(':mobile-pagecontainer').pagecontainer('change', page);
+	switch (page) {
+		case '#main':
+			loadConfig(function() {
+				loadFile();
+			});
+			break;
+		case '#signin':
+			//TODO: unloadFile
+			break;
+		case '#splash':
+			break;
+	}
+
+}
+
+function loadFile() {
+	if (app.file.id) {
+		$('#itemList').html("Loading file...");
+		fileDownload(app.file.id, function(data) {
+			if (data) {
+				app.file.data = data;
+				renderData(app.file.name, app.file.data);
+				saveConfig();
+			}
+		});
+	} else if (app.file.data) {
+		renderData(app.file.name, app.file.data);
+	}
 }
 
 function renderData(filename, data) {
@@ -77,64 +132,45 @@ function serializeData() {
 }
 
 /**********************************************************
- * sync storage functions
+ * google drive functions
  */
-
-function getFilename(callback) {
-	app.storage.get('filename', function(value) {
-		callback(value.filename);
-	});
-}
-
-function setFilename(filename) {
-	app.filename = filename;
-	app.storage.set({'filename': filename});
-
-	getFileList(function(files) {
-		if (files.indexOf(app.filename) === -1) {
-			files.push(app.filename);
-			app.storage.set({'files': files});
+function fileDownload(fileid, callback) {
+	drive.download(fileid, function(status, data) {
+		if (status === 200) {
+			// return downloaded data
+			callback(data);
+		} else {
+			// download failed
+			// return cached data
+			callback(app.file.data);
 		}
 	});
 }
 
-function removeFilename() {
-	getFileList(function(files) {
-		var index = files.indexOf(app.filename);
-		if (index >= 0) {
-			files.splice(index, 1);
-			app.storage.set({'files': files});
-		}
-		app.storage.set({'filename': ''});
-		app.filename = '';
-	});
-}
-
-function getFileList(callback) {
-	app.storage.get('files', function(value) {
-		return callback(value.files || []);
-	});
-}
-
-function getFile(filename, callback) {
-	app.storage.get(filename, function(value) {
-		var data = LZString.decompressFromUTF16(value[filename]);
-		callback(data);
-	});
-}
-
-function setFile(filename, data) {
-	var params = {};
-	params[filename] = LZString.compressToUTF16(data);
-	app.storage.set(params, function() {
-		if(chrome.runtime.lastError) {
-			displayMessage(chrome.runtime.lastError.message, "Unable to Save");
+function fileUpload(fileid, data, callback) {
+	var blob = new Blob([data], {'type':'text/plain'});
+	blob.name = app.file.name,
+	drive.upload(fileid, blob, function(response) {
+		if (callback) {
+			callback(response);
 		}
 	});
 }
 
-function removeFile(filename) {
-	app.storage.remove(filename);
+function fileTrash(fileid, callback) {
+	drive.trash(fileid, function(status, data) {
+		if (status === 200) {
+			callback(data);
+		}
+	});
+}
+
+function fileList(callback) {
+	drive.list("mimeType='text/plain' and trashed=false", function(status, data) {
+		if (status === 200) {
+			callback(data);
+		}
+	});
 }
 
 /**********************************************************
@@ -147,20 +183,27 @@ function newFile() {
 		'New File', MSG_CANCEL | MSG_INPUT, function() {
 			var filename = $('#messageInput').val();
 			if (filename.length > 0) {
-				setFilename(filename);
+				app.file.name = filename;
+				app.file.id = null;
 				renderData(filename, "\r\n");
 				addItem();
+				app.file.data = serializeData();
+				fileUpload(null, app.file.data, function(response) {
+					app.file.id = JSON.parse(response).id;
+					saveConfig();
+					console.log("Created file: " + app.file.id);
+				});
 			}
 		});
 	$('#messageInput').focus();
 }
 
 function openFile() {
-	getFileList(function(files) {
+	fileList(function(data) {
 		var options = '';
-		for(var i = 0; i < files.length; i++) {
-			options += '<option>' + files[i] + '</option>';
-		}
+		$.each(JSON.parse(data).items, function(key, item) {
+			options += '<option value="' + item.id + '">' + item.title + '</option>';
+		});
 		$('#messageSelect-button span').text('');
 		$('#messageSelect').html(options).selectmenu();
 	});
@@ -168,27 +211,23 @@ function openFile() {
 		'Select a file to open:',
 		'Open File', MSG_CANCEL | MSG_SELECT, function() {
 			var filename = $('#messageSelect-button span').text();
+			var fileid = $('#messageSelect').val();
 			if(filename.length > 0) {
-				setFilename(filename);
-				loadFile(filename);
+				$('#itemList').html("Loading file...");
+				app.file.id = fileid;
+				app.file.name = filename;
+				saveConfig();
+				loadFile();
 			}
 		});
 }
 
 function saveFile() {
-	if (app.filename.length === 0) {
-		$('#messageInput').val(app.filename);
-		displayMessage(
-			'Enter a filename:',
-			'Save As', MSG_CANCEL | MSG_INPUT, function() {
-				var filename = $('#messageInput').val();
-				if (filename.length > 0) {
-					setFilename(filename);
-				}
-			});
+	if (app.file.id) {
+		app.file.data = serializeData();
+		fileUpload(app.file.id, app.file.data);
+		saveConfig();
 	}
-	$('.items').removeAttr('contenteditable');
-	setFile(app.filename, serializeData());
 }
 
 function deleteFile() {
@@ -196,26 +235,37 @@ function deleteFile() {
 		'Are you sure you want to delete this file?',
 		'Confirm Delete', MSG_CANCEL, function() {
 			// delete file
-			removeFile(app.filename);
-			// remove filename
-			removeFilename();
-			// render empty data
-			$('#fileLabel').text('');
-			$('#itemList').html('');
+			fileTrash(app.file.id, function() {
+				// remove filename
+				app.file.id = null;
+				app.file.name = null;
+				app.file.data = null;
+				saveConfig();
+				// render empty data
+				$('#fileLabel').text('');
+				$('#itemList').html('');
+			});
 		});
 }
 
 function importFile() {
 	// display html file input dialog
 	$('<input type="file" accept="text/*">').change(function() {
+		$('#itemList').html("Loading file...");
 		// read data from selected file
 		var file = $(this)[0].files[0];
 		var reader = new FileReader();
 		reader.onload = function() {
 			// save data
-			setFilename(file.name);
-			renderData(file.name, reader.result);
-			saveFile(file.name, reader.result);
+			app.file.id = null;
+			app.file.name = file.name;
+			app.file.data = reader.result;
+			renderData(app.file.name, app.file.data);
+			fileUpload(null, app.file.data, function(response) {
+				app.file.id = JSON.parse(response).id;
+				saveConfig();
+				console.log("Created file: " + app.file.id);
+			});
 		};
 		reader.readAsText(file);
 	}).click();
@@ -257,6 +307,7 @@ function removeItem() {
 			'Are you sure you want to delete this item?',
 			'Confirm Delete', MSG_CANCEL, function() {
 				item.remove();
+				saveFile();
 			});
 	} else {
 		displayMessage(
@@ -307,5 +358,8 @@ $('#menuExport').click(exportFile);
 $('.menuAddItem').click(addItem);
 $('.menuEditItem').click(editItem);
 $('.menuRemoveItem').click(removeItem);
+$('#menuSignout').click(signOut);
+$('#buttonSignin').click(signIn);
+$('#buttonLocal').click(localOnly);
 
 }); //end jQuery

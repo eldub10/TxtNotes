@@ -4,4 +4,4 @@
     <author href="http://larrypdx.com">Larry Wright</author>
     <content src="plugins/cordova-plugin-chrome-apps-bootstrap/chromeapp.html"/>
 
-<preference name="android-minSdkVersion" value="14"/><platform name="android"><icon src="www/images/icon_128.png"/><icon src="www/images/icon_16.png" width="16"/><icon src="www/images/icon_128.png" width="128"/></platform><platform name="ios"><icon src="www/images/icon_128.png"/><icon src="www/images/icon_16.png" width="16"/><icon src="www/images/icon_128.png" width="128"/></platform></widget>
+<preference name="android-minSdkVersion" value="14"/><access origin="https://ssl.gstatic.com/*"/><access origin="https://www.googleapis.com/*"/><access origin="https://accounts.google.com/*"/><platform name="android"><icon src="www/images/icon_128.png"/><icon src="www/images/icon_16.png" width="16"/><icon src="www/images/icon_128.png" width="128"/></platform><platform name="ios"><icon src="www/images/icon_128.png"/><icon src="www/images/icon_16.png" width="16"/><icon src="www/images/icon_128.png" width="128"/></platform></widget>

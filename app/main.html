@@ -13,59 +13,75 @@
 	<!-- endbuild -->
 </head>
 <body>
-
-	<div id="header" data-role="header" data-position="fixed" data-tap-toggle="false" data-theme="b">
-		<a href="#menuPanel" class="ui-btn ui-btn-inline ui-corner-all ui-icon-bars ui-btn-icon-notext"></a>
-		<h4 id="fileLabel"></h4>
-		<div class="ui-btn-right">
-			<a class="menuAddItem ui-btn ui-btn-inline ui-corner-all ui-icon-plus ui-btn-icon-notext"></a>
-			<a class="menuEditItem ui-btn ui-btn-inline ui-corner-all ui-icon-edit ui-btn-icon-notext"></a>
-			<a class="menuRemoveItem ui-btn ui-btn-inline ui-corner-all ui-icon-delete ui-btn-icon-notext"></a>
+	<div id="splash" data-role="page">
+		<div data-role="main" class="ui-content">
 		</div>
 	</div>
 
-	<div id="menuPanel" data-role="panel" data-display="push" data-theme="b">
-		<ul data-role="listview">
-			<li data-icon="false"><a id="menuNew" data-rel="close">New File</a></li>
-			<li data-icon="false"><a id="menuOpen" data-rel="close">Open File</a></li>
-			<li data-icon="false"><a id="menuSave" data-rel="close">Save File</a></li>
-			<li data-icon="false"><a id="menuDelete" data-rel="close">Delete File</a></li>
-			<li data-icon="false"><a id="menuImport" data-rel="close">Import File</a></li>
-			<li data-icon="false"><a id="menuExport" data-rel="close">Export File</a></li>
-			<li data-icon="false"><a class="menuAddItem" data-rel="close">Add Item</a></li>
-			<li data-icon="false"><a class="menuEditItem" data-rel="close">Edit Item</a></li>
-			<li data-icon="false"><a class="menuRemoveItem" data-rel="close">Remove Item</a></li>
-		</ul>
-		<p class="info">Copyright &copy; 2015 Larry Wright</p>
-	</div>
-
-	<div id="main" data-role="main" class="ui-content">
-		<input data-type="search" id="itemFilter" autofocus>
-		<div id="itemList" data-role="collapsibleset" data-collapsed-icon="carat-r" data-expanded-icon="carat-d" data-filter="true" data-input="#itemFilter"></div>
-	</div>
-
-	<div id="messageBox" data-role="popup" data-position-to="window">
-		<div data-role="header" data-theme="b">
-			<h1 id="messageHeader"></h1>
+	<div id="signin" data-role="page">
+		<div data-role="main" class="ui-content">
+			<div id="popupSignin" data-role="popup"><p id="labelSignin"></p></div>
+			<button id="buttonSignin">Google Sign In</button>
+			<button id="buttonLocal">Local</button>
 		</div>
-		<div id="messageText" role="main" class="ui-content"></div>
-		<label for="message-text"></label>
-		<input name="message-text" id="messageInput" type="text">
-		<label for="message-select"></label>
-		<select name="message-select" id="messageSelect"></select>
-		<a id="messageOk" href="#" class="ui-btn ui-btn-b ui-corner-all ui-shadow ui-btn-inline" data-rel="back">OK</a>
-		<a id="messageCancel" href="#" class="ui-btn ui-corner-all ui-shadow ui-btn-inline" data-rel="back">Cancel</a>
 	</div>
+
+	<div id="main" data-role="page">
+		<div id="mainHeader" data-role="header" data-position="fixed" data-tap-toggle="false" data-theme="b">
+			<a href="#menuPanel" class="ui-btn ui-btn-inline ui-corner-all ui-icon-bars ui-btn-icon-notext"></a>
+			<h4 id="fileLabel"></h4>
+			<div class="ui-btn-right">
+				<a class="menuAddItem ui-btn ui-btn-inline ui-corner-all ui-icon-plus ui-btn-icon-notext"></a>
+				<a class="menuEditItem ui-btn ui-btn-inline ui-corner-all ui-icon-edit ui-btn-icon-notext"></a>
+				<a class="menuRemoveItem ui-btn ui-btn-inline ui-corner-all ui-icon-delete ui-btn-icon-notext"></a>
+			</div>
+		</div>
+		<div id="menuPanel" data-role="panel" data-display="push" data-theme="b">
+			<ul data-role="listview">
+				<li data-icon="false"><a id="menuNew" data-rel="close">New File</a></li>
+				<li data-icon="false"><a id="menuOpen" data-rel="close">Open File</a></li>
+				<li data-icon="false"><a id="menuSave" data-rel="close">Save File</a></li>
+				<li data-icon="false"><a id="menuDelete" data-rel="close">Delete File</a></li>
+				<li data-icon="false"><a id="menuImport" data-rel="close">Import File</a></li>
+				<li data-icon="false"><a id="menuExport" data-rel="close">Export File</a></li>
+				<hr>
+				<li data-icon="false"><a class="menuAddItem" data-rel="close">Add Item</a></li>
+				<li data-icon="false"><a class="menuEditItem" data-rel="close">Edit Item</a></li>
+				<li data-icon="false"><a class="menuRemoveItem" data-rel="close">Remove Item</a></li>
+				<hr>
+				<li data-icon="false"><a id="menuSignout" data-rel="close">Sign Out</a></li>
+			</ul>
+			<p class="info"><a href="https://github.com/eldub10" target="_blank">TxtNotes</a></p>
+		</div>
+		<div id="mainBody" data-role="main" class="ui-content">
+			<input id="itemFilter" data-type="search" autofocus>
+			<div id="itemList" data-role="collapsibleset" data-collapsed-icon="carat-r" data-expanded-icon="carat-d" data-filter="true" data-input="#itemFilter"></div>
+		</div>
+		<div id="messageBox" data-role="popup" data-position-to="window">
+			<div data-role="header" data-theme="b">
+				<h1 id="messageHeader"></h1>
+			</div>
+			<div id="messageText" role="main" class="ui-content"></div>
+			<label for="message-text"></label>
+			<input name="message-text" id="messageInput" type="text">
+			<label for="message-select"></label>
+			<select name="message-select" id="messageSelect"></select>
+			<a id="messageOk" href="#" class="ui-btn ui-btn-b ui-corner-all ui-shadow ui-btn-inline" data-rel="back">OK</a>
+			<a id="messageCancel" href="#" class="ui-btn ui-corner-all ui-shadow ui-btn-inline" data-rel="back">Cancel</a>
+		</div>
+	</div>
+
 
 	<!-- build:js scripts/vendor.js -->
 	<script src="bower_components/jquery/jquery.js"></script>
 	<script src="scripts/mobileinit.js"></script>
 	<script src="bower_components/jquery-mobile-bower/js/jquery.mobile-1.4.5.js"></script>
+	<script src="bower_components/cors-upload-sample/upload.js"></script>
 	<script src="bower_components/linkifyjs/dist/jquery.linkify.js"></script>
-	<script src="bower_components/lz-string/libs/lz-string.js"></script>
 	<!-- endbuild -->
 
 	<!-- build:js scripts/main.js -->
+	<script src="scripts/drive.js"></script>
 	<script src="scripts/main.js"></script>
 	<!-- endbuild -->
 

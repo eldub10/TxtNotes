@@ -35,6 +35,19 @@ html {
 .info {
 	position: fixed;
 	bottom: 0;
-	font-size: .75em;
-	color: #ccc;
+}
+
+.info a {
+	color: #888 !important;
+	text-decoration: none;
+}
+.info a:hover {
+	color: #fff !important;
+}
+
+#menuPanel hr {
+	-webkit-margin-before: 0;
+	-webkit-margin-after: 0;
+	color: #888;
+	border-style: solid;
 }
