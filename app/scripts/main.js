@@ -5,42 +5,32 @@
 jQuery(function($) {
 'use strict';
 
+// Globals
 var app = {
-	file: null
+	file: {
+		id: null,
+		name: null,
+		data: null
+	}
 }
-var drive = new Drive();
+var drive = null;
 
 function init() {
+	// called on window.load
+	app.file = null;
+	drive = new Drive();
+
+	// silently authorize google account (previously signed-in)
 	drive.auth(false, function() {
 		console.log(drive.authToken);
+		// load #main page if already authorized
+		// else load #signin page
 		loadPage(Boolean(drive.authToken) ? '#main' : '#signin');
 	})
 }
 
-function signIn() {
-	drive.auth(true, function() {
-		if (drive.authToken) {
-			console.log(drive.authToken);
-			loadPage('#main');
-		} else {
-			$('#labelSignin').text('Unable to connect. ' + chrome.runtime.lastError.message);
-			$('#popupSignin').popup('open');
-		}
-	});
-}
-
-function signOut() {
-	drive.revoke(function() {
-		console.log(drive.authToken);
-		loadPage('#signin');
-	});
-}
-
-function localOnly() {
-	loadPage('#main');
-}
-
 function loadConfig(callback) {
+	// load app config from local storage
 	chrome.storage.local.get(null, function(value) {
 		app.file = value;
 		callback();
@@ -48,6 +38,7 @@ function loadConfig(callback) {
 }
 
 function saveConfig() {
+	// save app config to local storage
 	chrome.storage.local.set(app.file);
 }
 
@@ -60,7 +51,6 @@ function loadPage(page) {
 			});
 			break;
 		case '#signin':
-			//TODO: unloadFile
 			break;
 		case '#splash':
 			break;
@@ -69,6 +59,7 @@ function loadPage(page) {
 }
 
 function loadFile() {
+	// load file from google drive and render to html
 	if (app.file.id) {
 		$('#itemList').html("Loading file...");
 		fileDownload(app.file.id, function(data) {
@@ -79,6 +70,8 @@ function loadFile() {
 			}
 		});
 	} else if (app.file.data) {
+		// if unable to get file from google drive
+		// render cached data if it exists
 		renderData(app.file.name, app.file.data);
 	}
 }
@@ -152,6 +145,9 @@ function fileUpload(fileid, data, callback) {
 	blob.name = app.file.name,
 	drive.upload(fileid, blob, function(response) {
 		if (callback) {
+			// return response
+			// if a new file was upload
+			// response.id will contain the new fileid
 			callback(response);
 		}
 	});
@@ -199,7 +195,9 @@ function newFile() {
 }
 
 function openFile() {
+	// get list of 'text/plain' files from google drive
 	fileList(function(data) {
+		// add files to select list
 		var options = '';
 		$.each(JSON.parse(data).items, function(key, item) {
 			options += '<option value="' + item.id + '">' + item.title + '</option>';
@@ -213,6 +211,7 @@ function openFile() {
 			var filename = $('#messageSelect-button span').text();
 			var fileid = $('#messageSelect').val();
 			if(filename.length > 0) {
+				// load the selected file
 				$('#itemList').html("Loading file...");
 				app.file.id = fileid;
 				app.file.name = filename;
@@ -223,6 +222,8 @@ function openFile() {
 }
 
 function saveFile() {
+	// save file to google drive and local storage
+	// called after each edit
 	if (app.file.id) {
 		app.file.data = serializeData();
 		fileUpload(app.file.id, app.file.data);
@@ -234,9 +235,9 @@ function deleteFile() {
 	displayMessage(
 		'Are you sure you want to delete this file?',
 		'Confirm Delete', MSG_CANCEL, function() {
-			// delete file
+			// delete file from google drive
 			fileTrash(app.file.id, function() {
-				// remove filename
+				// remove file from local storage
 				app.file.id = null;
 				app.file.name = null;
 				app.file.data = null;
@@ -256,11 +257,13 @@ function importFile() {
 		var file = $(this)[0].files[0];
 		var reader = new FileReader();
 		reader.onload = function() {
-			// save data
+			// save data to local storage
 			app.file.id = null;
 			app.file.name = file.name;
 			app.file.data = reader.result;
+			// display new file
 			renderData(app.file.name, app.file.data);
+			// save data to google drive
 			fileUpload(null, app.file.data, function(response) {
 				app.file.id = JSON.parse(response).id;
 				saveConfig();
@@ -314,6 +317,30 @@ function removeItem() {
 			'Unable to delete. No item was selected.',
 			'Delete', MSG_OK);
 	}
+}
+
+function signIn() {
+	// sign-in button was clicked, display google auth
+	drive.auth(true, function() {
+		if (drive.authToken) {
+			console.log(drive.authToken);
+			loadPage('#main');
+		} else {
+			$('#labelSignin').text('Unable to connect. ' + chrome.runtime.lastError.message);
+			$('#popupSignin').popup('open');
+		}
+	});
+}
+
+function signOut() {
+	drive.revoke(function() {
+		console.log(drive.authToken);
+		loadPage('#signin');
+	});
+}
+
+function localOnly() {
+	loadPage('#main');
 }
 
 /**********************************************************

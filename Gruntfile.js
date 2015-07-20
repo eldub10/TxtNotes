@@ -204,7 +204,6 @@ module.exports = function (grunt) {
     var watch = grunt.config('watch');
     platform = platform || 'chrome';
 
-
     // Configure style task for debug:server task
     if (platform === 'server') {
       watch.styles.tasks = ['newer:copy:styles'];
@@ -223,7 +222,25 @@ module.exports = function (grunt) {
     ]);
   });
 
-  grunt.registerTask('build', [
+  grunt.registerTask('update_manifest', function (key, value) {
+    var srcFile = "private.json";
+    var destFile = "www/manifest.json";
+
+    if (!grunt.file.exists(srcFile)) {
+      grunt.log.error("file " + srcFile + " not found");
+      return;
+    }
+    var srcJson = grunt.file.readJSON(srcFile);
+    var destJson = grunt.file.readJSON(destFile);
+
+    // update client_id
+    destJson.oauth2.client_id = srcJson.oauth2.client_id;
+    destJson.android.oauth2.client_id = srcJson.android.oauth2.client_id;
+
+    grunt.file.write(destFile, JSON.stringify(destJson, null, 2));
+  });
+
+  grunt.registerTask('build_crx', [
     'clean:dist',
     'useminPrepare',
     'concurrent:dist',
@@ -232,9 +249,18 @@ module.exports = function (grunt) {
     'uglify',
     'copy:dist',
     'usemin',
+    'update_manifest',
     'crx',
+  ]);
+
+  grunt.registerTask('build_apk', [
     'cordovacli',
     'copy:apk'
+  ]);
+
+  grunt.registerTask('build', [
+    'build_crx',
+    'build_apk'
   ]);
 
   grunt.registerTask('default', [

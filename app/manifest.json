@@ -18,7 +18,7 @@
         }
     },
     "oauth2": {
-        "client_id": "785152409085-0ft9qjqggjlh6dmj20coe5lnqhhudr20.apps.googleusercontent.com",
+        "client_id": "xxxxxxxxxxxx.apps.googleusercontent.com",
         "scopes": [
             "https://www.googleapis.com/auth/drive",
             "https://www.googleapis.com/auth/drive.appfolder"
@@ -26,7 +26,7 @@
     },
     "android": {
         "oauth2": {
-            "client_id": "785152409085-hjv9s9sfh1feglp6ar69vfbobnres8lj.apps.googleusercontent.com",
+            "client_id": "xxxxxxxxxxxx.apps.googleusercontent.com",
             "scopes": [
                 "https://www.googleapis.com/auth/drive",
                 "https://www.googleapis.com/auth/drive.appfolder"
