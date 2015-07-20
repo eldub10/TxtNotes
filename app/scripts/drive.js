@@ -1,10 +1,8 @@
-
 /**
  * Class that wraps CORS functions for accessing google drive
  * Does not use GAPI. See:
  * https://developers.google.com/api-client-library/javascript/features/cors
  * https://developers.google.com/drive/v2/reference/
- * https://github.com/googledrive/cors-upload-sample
  */
 function Drive() {
 	this.authToken = null;
@@ -91,21 +89,51 @@ Drive.prototype = {
 
 	/**
 	 * Upload file to google drive
-	 *   uses MediaUploader from 'googledrive/cors-upload-sample'
 	 * @param  {String}   fileid of file to update or null if new file
-	 * @param  {Blob}     blob contain data, mimetype, and name
+	 * @param  {Blob}     content containing data, mimetype, and name
 	 * @param  {Function} callback on success
 	 */
 	upload: function(fileid, content, callback) {
-		var uploader = new MediaUploader({
-			file: content,
-			token: this.authToken,
-			fileId: fileid,
-			params: {newRevision: false},
-			onComplete: callback,
-			onError: this.handleError
-		});
-		uploader.upload();
+		const boundary = '-------314159265358979323846';
+		var method = '';
+		var url = 'https://www.googleapis.com/upload/drive/v2/files';
+
+		if (fileid) {
+			method = 'PUT';
+			url += '/' + fileid;
+		} else {
+			method = 'POST';
+		}
+		url += '?uploadType=multipart';
+
+		var metadata = {
+			'mimeType': content.type,
+			'title': content.name
+		};
+
+		var xhr = new XMLHttpRequest();
+		xhr.open(method, url);
+		xhr.setRequestHeader('Authorization', 'Bearer ' + this.authToken);
+		xhr.setRequestHeader('Content-Type', 'multipart/related; boundary="' + boundary + '"');
+		xhr.onload = function() {
+			callback(xhr.status, xhr.responseText);
+		};
+		xhr.onerror = this.handleError;
+
+		var reader = new FileReader();
+		reader.onload = function() {
+			var multipartRequestBody =
+				'\r\n--' + boundary + '\r\n' +
+				'Content-Type: application/json\r\n\r\n' +
+				JSON.stringify(metadata) +
+				'\r\n--' + boundary + '\r\n' +
+				'Content-Type: ' + content.type + '\r\n\r\n' +
+				reader.result +
+				'\r\n--' + boundary + '--';
+			xhr.send(multipartRequestBody);
+
+		}
+		reader.readAsText(content);
 	},
 
 	/**

@@ -143,12 +143,12 @@ function fileDownload(fileid, callback) {
 function fileUpload(fileid, data, callback) {
 	var blob = new Blob([data], {'type':'text/plain'});
 	blob.name = app.file.name,
-	drive.upload(fileid, blob, function(response) {
+	drive.upload(fileid, blob, function(status, response) {
 		if (callback) {
 			// return response
-			// if a new file was upload
+			// if a new file was uploaded
 			// response.id will contain the new fileid
-			callback(response);
+			callback(status, response);
 		}
 	});
 }
@@ -184,10 +184,12 @@ function newFile() {
 				renderData(filename, "\r\n");
 				addItem();
 				app.file.data = serializeData();
-				fileUpload(null, app.file.data, function(response) {
-					app.file.id = JSON.parse(response).id;
-					saveConfig();
-					console.log("Created file: " + app.file.id);
+				fileUpload(null, app.file.data, function(status, response) {
+					if (status === 200){
+						app.file.id = JSON.parse(response).id;
+						saveConfig();
+						console.log("Created file: " + app.file.id);
+					}
 				});
 			}
 		});
@@ -264,10 +266,12 @@ function importFile() {
 			// display new file
 			renderData(app.file.name, app.file.data);
 			// save data to google drive
-			fileUpload(null, app.file.data, function(response) {
-				app.file.id = JSON.parse(response).id;
-				saveConfig();
-				console.log("Created file: " + app.file.id);
+			fileUpload(null, app.file.data, function(status, response) {
+				if (status === 200){
+					app.file.id = JSON.parse(response).id;
+					saveConfig();
+					console.log("Created file: " + app.file.id);
+				}
 			});
 		};
 		reader.readAsText(file);

@@ -254,6 +254,7 @@ module.exports = function (grunt) {
   ]);
 
   grunt.registerTask('build_apk', [
+    'build_crx',
     'cordovacli',
     'copy:apk'
   ]);

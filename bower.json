@@ -4,9 +4,7 @@
   "dependencies": {
     "jquery": "~1.10.0",
     "jquery-mobile-bower": "~1.4.5",
-    "linkifyjs": "~1.1.7",
-    "lz-string": "~1.4.4",
-    "cors-upload-sample": "googledrive/cors-upload-sample"
+    "linkifyjs": "~1.1.7"
   },
   "devDependencies": {}
 }
