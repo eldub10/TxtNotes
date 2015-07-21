@@ -11,7 +11,8 @@ var app = {
 		id: null,
 		name: null,
 		data: null
-	}
+	},
+	manifest: null
 }
 var drive = null;
 
@@ -27,6 +28,10 @@ function init() {
 		// else load #signin page
 		loadPage(Boolean(drive.authToken) ? '#main' : '#signin');
 	})
+
+	// display version
+	app.manifest = chrome.runtime.getManifest();
+	$('#info').text('TxtNotes ' + app.manifest.version);
 }
 
 function loadConfig(callback) {
@@ -269,9 +274,9 @@ function importFile() {
 			fileUpload(null, app.file.data, function(status, response) {
 				if (status === 200){
 					app.file.id = JSON.parse(response).id;
-					saveConfig();
 					console.log("Created file: " + app.file.id);
 				}
+				saveConfig();
 			});
 		};
 		reader.readAsText(file);

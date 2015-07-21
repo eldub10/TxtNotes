@@ -32,22 +32,13 @@ html {
 	height: 1em;
 }
 
-.info {
+#info {
 	position: fixed;
 	bottom: 0;
-}
-
-.info a {
-	color: #888 !important;
-	text-decoration: none;
-}
-.info a:hover {
-	color: #fff !important;
 }
 
 #menuPanel hr {
 	-webkit-margin-before: 0;
 	-webkit-margin-after: 0;
-	color: #888;
-	border-style: solid;
+	border: 1px solid #888;
 }
