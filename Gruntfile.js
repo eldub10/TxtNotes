@@ -227,8 +227,7 @@ module.exports = function (grunt) {
     var destFile = "www/manifest.json";
 
     if (!grunt.file.exists(srcFile)) {
-      grunt.log.error("file " + srcFile + " not found");
-      return;
+      grunt.warn("private.json needed for Google oauth2 client_id.");
     }
     var srcJson = grunt.file.readJSON(srcFile);
     var destJson = grunt.file.readJSON(destFile);
@@ -260,7 +259,6 @@ module.exports = function (grunt) {
   ]);
 
   grunt.registerTask('build', [
-    'build_crx',
     'build_apk'
   ]);
 
